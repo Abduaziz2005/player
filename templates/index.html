@@ -2,402 +2,538 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎬 Media Player Pro v7.0</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🎬 Media Player Pro v8.0</title>
 <link rel="stylesheet" href="/static/css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div id="app">
 
-  <!-- ═══ SIDEBAR ═══════════════════════════ -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-icon">🎬</span>
-      <span class="logo-text">MediaPlayer</span>
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">🎬</span>
+    <span class="logo-text">MediaPro</span>
+    <button class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Yig'ish">‹</button>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="quickSearch" class="qs-input" placeholder="🔍 Tez qidirish...">
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">ASOSIY</div>
+    <button class="nav-btn active" data-page="home">        <span class="ni">🏠</span><span class="nl">Bosh sahifa</span></button>
+    <button class="nav-btn" data-page="library">            <span class="ni">📚</span><span class="nl">Kutubxona</span></button>
+    <button class="nav-btn" data-page="download">          <span class="ni">⬇</span><span class="nl">Yuklovchi</span></button>
+    <button class="nav-btn" data-page="playlists">         <span class="ni">🎵</span><span class="nl">Pleylistlar</span></button>
+    <button class="nav-btn" data-page="collections">       <span class="ni">📂</span><span class="nl">To'plamlar</span></button>
+    <div class="nav-section-label">IJODIY</div>
+    <button class="nav-btn" data-page="tags">              <span class="ni">🏷</span><span class="nl">Teglar</span></button>
+    <button class="nav-btn" data-page="history">           <span class="ni">🕐</span><span class="nl">Tarix</span></button>
+    <button class="nav-btn" data-page="stats">             <span class="ni">📊</span><span class="nl">Statistika</span></button>
+    <button class="nav-btn" data-page="top">               <span class="ni">🏆</span><span class="nl">Top Media</span></button>
+    <div class="nav-section-label">BOSHQARUV</div>
+    <button class="nav-btn" data-page="trash">             <span class="ni">🗑</span><span class="nl">Savat</span><span id="trashBadge" class="nav-badge" style="display:none">0</span></button>
+    <button class="nav-btn" data-page="activity">          <span class="ni">📋</span><span class="nl">Faoliyat</span></button>
+    <button class="nav-btn" data-page="storage">           <span class="ni">💾</span><span class="nl">Saqlash</span></button>
+    <button class="nav-btn" data-page="admin">             <span class="ni">⚙</span><span class="nl">Admin</span></button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="sfbtn" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    <button class="sfbtn" onclick="showShortcuts()">⌨</button>
+    <button class="sfbtn" onclick="navigate('download')">⬇</button>
+    <span class="version-lbl">v8.0</span>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════════ -->
+<main class="main-content" id="mainContent">
+
+<!-- ── HOME ── -->
+<section class="page active" id="page-home">
+  <div class="page-header">
+    <h1>🏠 Bosh Sahifa</h1>
+    <button class="btn btn-sm" onclick="loadHome()">🔄</button>
+  </div>
+  <div id="statsGrid" class="stats-grid"></div>
+  <div id="continueSection"></div>
+  <div id="recentSection"></div>
+</section>
+
+<!-- ── LIBRARY ── -->
+<section class="page" id="page-library">
+  <div class="page-header">
+    <h1>📚 Kutubxona</h1>
+    <div class="hdr-actions">
+      <button class="btn btn-sm" id="batchEditBtn" onclick="showBatchEdit()" style="display:none">✏ Batch Edit</button>
+      <div class="view-toggle">
+        <button class="btn btn-sm active" id="gridViewBtn" onclick="setView('grid')">⊞</button>
+        <button class="btn btn-sm" id="listViewBtn" onclick="setView('list')">☰</button>
+      </div>
     </div>
-    <div class="sidebar-sep"></div>
-    <nav class="sidebar-nav">
-      <button class="nav-btn active" data-page="home">🏠<span>Bosh sahifa</span></button>
-      <button class="nav-btn" data-page="library">📚<span>Kutubxona</span></button>
-      <button class="nav-btn" data-page="upload">📤<span>Yuklash</span></button>
-      <button class="nav-btn" data-page="playlists">🎵<span>Pleylistlar</span></button>
-      <button class="nav-btn" data-page="history">🕐<span>Tarix</span></button>
-      <button class="nav-btn" data-page="stats">📊<span>Statistika</span></button>
-      <button class="nav-btn" data-page="top">🏆<span>Top Media</span></button>
-      <button class="nav-btn" data-page="admin">⚙<span>Admin</span></button>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="quick-search-wrap">
-        <input type="text" id="quickSearch" class="quick-search" placeholder="🔍 Tez qidirish">
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="libSearch" class="filter-input" placeholder="🔍 Sarlavha, tag, janr..." oninput="debounceSearch()">
+    <select id="libType" class="filter-select" onchange="loadLibrary()">
+      <option value="">Barchasi</option>
+      <option value="video">🎬 Video</option>
+      <option value="audio">🎵 Audio</option>
+      <option value="image">🖼 Rasm</option>
+      <option value="book">📚 Kitob</option>
+    </select>
+    <select id="libCategory" class="filter-select" onchange="loadLibrary()">
+      <option value="">Barcha kategoriyalar</option>
+    </select>
+    <select id="libGenre" class="filter-select" onchange="loadLibrary()">
+      <option value="">Barcha janrlar</option>
+    </select>
+    <select id="libTagFilter" class="filter-select" onchange="loadLibrary()">
+      <option value="">Barcha teglar</option>
+    </select>
+    <select id="libSort" class="filter-select" onchange="loadLibrary()">
+      <option value="added_at">📅 Yangi</option>
+      <option value="title">🔤 Nom</option>
+      <option value="rating">⭐ Reyting</option>
+      <option value="views">👁 Ko'rishlar</option>
+      <option value="year">📆 Yil</option>
+    </select>
+    <label class="filter-chk"><input type="checkbox" id="libFav" onchange="loadLibrary()"> ❤</label>
+  </div>
+  <div id="batchBar" class="batch-bar" style="display:none">
+    <span id="batchCount">0 ta tanlangan</span>
+    <button class="btn btn-sm" onclick="showBatchEdit()">✏ Edit</button>
+    <button class="btn btn-sm btn-danger" onclick="batchDeleteSelected()">🗑 O'chir</button>
+    <button class="btn btn-sm" onclick="addSelectedToPlaylist()">➕ Pleylist</button>
+    <button class="btn btn-sm" onclick="clearSelection()">✕ Bekor</button>
+  </div>
+  <div id="mediaGrid" class="media-grid"></div>
+  <div class="pagination" id="libPagination"></div>
+</section>
+
+<!-- ── DOWNLOAD CENTER ── -->
+<section class="page" id="page-download">
+  <div class="page-header"><h1>⬇ Yuklovchi Markazi</h1></div>
+  <div class="download-tabs">
+    <button class="dl-tab-btn active" data-dtab="ytdl" onclick="showDlTab('ytdl')">🎬 YouTube/URL</button>
+    <button class="dl-tab-btn" data-dtab="file"  onclick="showDlTab('file')">📂 Fayl yuklash</button>
+    <button class="dl-tab-btn" data-dtab="bulk"  onclick="showDlTab('bulk')">📦 Bulk import</button>
+    <button class="dl-tab-btn" data-dtab="watch" onclick="showDlTab('watch')">👁 Papka kuzatish</button>
+    <button class="dl-tab-btn" data-dtab="dlhist" onclick="showDlTab('dlhist')">📋 Yuklovchi tarixi</button>
+  </div>
+
+  <!-- YT-DLP tab -->
+  <div id="dtab-ytdl" class="dl-tab-content">
+    <div class="ytdl-layout">
+      <div class="ytdl-left card">
+        <h3>🎬 Saytdan video/audio yuklovchi</h3>
+        <p class="hint-text">YouTube, Instagram, TikTok, Pinterest, Twitter/X, Facebook, Vimeo va 1000+ saytni qo'llab-quvvatlaydi (yt-dlp kerak)</p>
+        <div class="form-group full" style="margin-top:14px">
+          <label>URL *</label>
+          <div style="display:flex;gap:8px">
+            <input type="url" id="ytUrl" class="form-input" placeholder="https://youtube.com/watch?v=...">
+            <button class="btn btn-primary" onclick="ytdlGetInfo()">🔍 Ma'lumot</button>
+          </div>
+        </div>
+        <div id="ytInfoBox" class="ytdl-info-box" style="display:none">
+          <div class="ytdl-thumb-row">
+            <img id="ytThumb" src="" alt="" class="ytdl-thumb">
+            <div class="ytdl-meta">
+              <div id="ytTitle" class="ytdl-title"></div>
+              <div id="ytUploader" class="ytdl-uploader"></div>
+              <div id="ytDuration" class="ytdl-dur"></div>
+            </div>
+          </div>
+          <div class="form-group full" style="margin-top:10px">
+            <label>Sifat / Format</label>
+            <select id="ytFormat" class="form-input"></select>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:12px">
+          <div class="form-group full">
+            <label>Sarlavha (ixtiyoriy)</label>
+            <input type="text" id="ytCustomTitle" class="form-input" placeholder="Avtomatik aniqlanadi">
+          </div>
+          <div class="form-group">
+            <label>Kategoriya</label>
+            <select id="ytCategory" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label>Janr</label>
+            <input type="text" id="ytGenre" class="form-input" placeholder="Drama, Pop...">
+          </div>
+          <div class="form-group">
+            <label>Yil</label>
+            <input type="number" id="ytYear" class="form-input" min="1900" max="2030">
+          </div>
+          <div class="form-group full">
+            <label class="filter-chk"><input type="checkbox" id="ytPlaylist"> 📋 Butun pleylistni yuklash</label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary btn-lg" onclick="ytdlStartDownload()">⬇ Navbatga qo'shish</button>
+          <button class="btn btn-sm" onclick="ytdlClearDone()">🧹 Tugaganlarni tozala</button>
+        </div>
       </div>
-      <div class="sidebar-footer-btns">
-        <button class="btn btn-sm sidebar-extra-btn" id="themeToggle" onclick="toggleTheme()">☀ Yorug'</button>
-        <button class="btn btn-sm sidebar-extra-btn" onclick="showShortcuts()">⌨</button>
+
+      <div class="ytdl-right">
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3>📥 Download Navbati</h3>
+            <button class="btn btn-sm" onclick="loadQueue()">🔄</button>
+          </div>
+          <div id="ytQueue" class="queue-list">
+            <div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:28px">📭</div><p>Navbat bo'sh</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:8px">💡 Qo'llab-quvvatlanadigan saytlar</h3>
+          <div class="supported-sites">
+            <span class="site-badge">▶ YouTube</span><span class="site-badge">📸 Instagram</span>
+            <span class="site-badge">🎵 TikTok</span><span class="site-badge">📌 Pinterest</span>
+            <span class="site-badge">🐦 Twitter/X</span><span class="site-badge">📘 Facebook</span>
+            <span class="site-badge">🎬 Vimeo</span><span class="site-badge">📺 Dailymotion</span>
+            <span class="site-badge">🎵 SoundCloud</span><span class="site-badge">+ 1000 sayt</span>
+          </div>
+          <div class="upload-note" style="margin-top:10px">
+            ⚠ <strong>yt-dlp</strong> o'rnatilgan bo'lishi kerak:<br>
+            <code>pip install yt-dlp</code>
+          </div>
+        </div>
       </div>
-      <div class="version-label">v7.0 · Web Edition</div>
     </div>
-  </aside>
+  </div>
 
-  <!-- ═══ MAIN CONTENT ══════════════════════ -->
-  <main class="main-content">
-
-
-    <!-- HOME PAGE -->
-    <section class="page active" id="page-home">
-      <div class="page-header">
-        <h1>🏠 Bosh Sahifa</h1>
-        <button class="btn btn-sm" onclick="loadHome()">🔄 Yangilash</button>
+  <!-- File upload tab -->
+  <div id="dtab-file" class="dl-tab-content" style="display:none">
+    <div class="card upload-container">
+      <div id="dropZone" class="drop-zone" ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="dropFiles(event)" onclick="$('fileInput').click()">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Fayllarni bu yerga tashlang yoki bosing</div>
+        <div class="drop-sub">MP4 · MKV · MP3 · WAV · JPG · PNG · PDF va boshqalar</div>
       </div>
-      <div id="statsGrid" class="stats-grid"></div>
-      <div id="continueSection"></div>
-      <div id="recentSection"></div>
-    </section>
+      <input type="file" id="fileInput" multiple accept=".mp4,.mkv,.avi,.mov,.webm,.wmv,.mp3,.wav,.flac,.m4a,.ogg,.jpg,.jpeg,.png,.gif,.webp,.pdf,.epub,.txt" style="display:none" onchange="handleFiles(this.files)">
+      <div id="selectedFiles" class="selected-files"></div>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="form-group full"><label>Sarlavha *</label>
+          <input type="text" id="upTitle" class="form-input" placeholder="Media nomi"></div>
+        <div class="form-group full"><label>Tavsif</label>
+          <textarea id="upDesc" class="form-input" rows="2"></textarea></div>
+        <div class="form-group"><label>Tur</label>
+          <select id="upType" class="form-input">
+            <option value="video">🎬 Video</option><option value="audio">🎵 Audio</option>
+            <option value="image">🖼 Rasm</option><option value="book">📚 Kitob</option>
+          </select></div>
+        <div class="form-group"><label>Kategoriya</label>
+          <select id="upCategory" class="form-input"></select></div>
+        <div class="form-group"><label>Janr</label>
+          <input type="text" id="upGenre" class="form-input"></div>
+        <div class="form-group"><label>Yil</label>
+          <input type="number" id="upYear" class="form-input" min="1900" max="2030"></div>
+        <div class="form-group"><label>Reyting (0-5)</label>
+          <input type="number" id="upRating" class="form-input" min="0" max="5" step="0.5" value="0"></div>
+        <div class="form-group"><label>Rejim</label>
+          <select id="upMode" class="form-input">
+            <option value="copy">📋 Nusxa</option><option value="link">🔗 Havola</option>
+          </select></div>
+      </div>
+      <button class="btn btn-primary btn-lg" id="uploadBtn" onclick="doUpload()">⬆ Yuklash</button>
+      <div id="uploadProgress" class="upload-progress-bar" style="display:none">
+        <div class="progress-fill" id="uploadFill"></div>
+      </div>
+      <div id="uploadStatus" class="upload-status"></div>
+    </div>
+  </div>
 
-    <!-- LIBRARY PAGE -->
-    <section class="page" id="page-library">
-      <div class="page-header">
-        <h1>📚 Media Kutubxona</h1>
-        <div class="view-toggle">
-          <button class="btn btn-sm active" id="gridViewBtn" onclick="setView('grid')">⊞ Grid</button>
-          <button class="btn btn-sm" id="listViewBtn" onclick="setView('list')">☰ List</button>
+  <!-- Bulk import tab -->
+  <div id="dtab-bulk" class="dl-tab-content" style="display:none">
+    <div class="card" style="max-width:680px">
+      <h3>📦 Papkadan ommaviy import</h3>
+      <p class="hint-text">Belgilangan papkadagi barcha media fayllarni bir martada qo'shish</p>
+      <div class="form-grid" style="margin-top:14px">
+        <div class="form-group full"><label>Papka yo'li *</label>
+          <input type="text" id="bulkPath" class="form-input" placeholder="C:\Videos yoki /home/user/Videos"></div>
+        <div class="form-group"><label>Kategoriya</label>
+          <select id="bulkCat" class="form-input"></select></div>
+        <div class="form-group" style="justify-content:flex-end;padding-top:22px">
+          <label class="filter-chk"><input type="checkbox" id="bulkRecursive"> 📂 Ichki papkalar</label>
         </div>
       </div>
-      <div class="filter-bar">
-        <input type="text" id="libSearch" class="filter-input" placeholder="🔍 Qidirish..." oninput="debounceSearch()">
-        <select id="libType" class="filter-select" onchange="loadLibrary()">
-          <option value="">Barchasi</option>
-          <option value="video">🎬 Video</option>
-          <option value="audio">🎵 Audio</option>
-          <option value="image">🖼 Rasm</option>
-          <option value="book">📚 Kitob</option>
-        </select>
-        <select id="libCategory" class="filter-select" onchange="loadLibrary()">
-          <option value="">Barcha kategoriyalar</option>
-        </select>
-        <select id="libGenre" class="filter-select" onchange="loadLibrary()">
-          <option value="">Barcha janrlar</option>
-        </select>
-        <select id="libSort" class="filter-select" onchange="loadLibrary()">
-          <option value="added_at">📅 Yangi</option>
-          <option value="title">🔤 Nomi</option>
-          <option value="rating">⭐ Reyting</option>
-          <option value="views">👁 Ko'rishlar</option>
-          <option value="year">📆 Yil</option>
-        </select>
-        <label class="filter-checkbox">
-          <input type="checkbox" id="libFav" onchange="loadLibrary()"> ❤ Sevimlilar
-        </label>
+      <button class="btn btn-primary btn-lg" id="bulkBtn" onclick="doBulkImport()">📂 Import</button>
+      <div id="bulkStatus" class="upload-status" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- Watch folders tab -->
+  <div id="dtab-watch" class="dl-tab-content" style="display:none">
+    <div class="card" style="margin-bottom:14px;max-width:680px">
+      <h3>👁 Papka qo'shish</h3>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input type="text" id="watchPath" class="form-input" placeholder="/home/user/Videos" style="flex:1">
+        <button class="btn btn-primary" onclick="addWatchFolder()">+ Qo'shish</button>
+        <button class="btn btn-sm" onclick="scanAllFolders()">🔍 Hammasini skanla</button>
       </div>
-      <div id="mediaGrid" class="media-grid"></div>
-      <div class="pagination" id="libPagination"></div>
-    </section>
+    </div>
+    <div id="watchFolderList"></div>
+  </div>
 
-    <!-- UPLOAD PAGE -->
-    <section class="page" id="page-upload">
-      <div class="page-header"><h1>📤 Media Yuklash</h1></div>
-      <div class="upload-tabs">
-        <button class="upload-tab-btn active" data-tab="file" onclick="showUploadTab('file')">📂 Fayl</button>
-        <button class="upload-tab-btn" data-tab="url" onclick="showUploadTab('url')">🌐 URL</button>
-        <button class="upload-tab-btn" data-tab="bulk" onclick="showUploadTab('bulk')">📦 Papka import</button>
-        <button class="upload-tab-btn" data-tab="watchFolder" onclick="showUploadTab('watchFolder')">👁 Papka kuzatish</button>
-      </div>
+  <!-- Download history tab -->
+  <div id="dtab-dlhist" class="dl-tab-content" style="display:none">
+    <div class="page-header" style="margin-bottom:12px">
+      <h3>📋 Yuklovchi tarixi</h3>
+      <button class="btn btn-sm btn-danger" onclick="clearDlHistory()">🗑 Tozala</button>
+    </div>
+    <div id="dlHistoryList"></div>
+  </div>
+</section>
 
-      <!-- File upload tab -->
-      <div id="fileUploadTab" class="upload-container">
-        <div id="dropZone" class="drop-zone" ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="dropFiles(event)" onclick="document.getElementById('fileInput').click()">
-          <div class="drop-icon">📂</div>
-          <div class="drop-text">Fayllarni bu yerga tashlang yoki bosing</div>
-          <div class="drop-sub">MP4 · MKV · MP3 · WAV · JPG · PNG · PDF · EPUB va boshqalar</div>
-        </div>
-        <input type="file" id="fileInput" multiple accept=".mp4,.mkv,.avi,.mov,.webm,.wmv,.mp3,.wav,.flac,.m4a,.ogg,.opus,.jpg,.jpeg,.png,.gif,.webp,.pdf,.epub,.txt,.fb2" style="display:none" onchange="handleFiles(this.files)">
-        <div id="selectedFiles" class="selected-files"></div>
-        <div class="upload-form card">
-          <h3>Media ma'lumotlari</h3>
-          <div class="form-grid">
-            <div class="form-group full"><label>Sarlavha *</label>
-              <input type="text" id="upTitle" class="form-input" placeholder="Media nomi"></div>
-            <div class="form-group full"><label>Tavsif</label>
-              <textarea id="upDesc" class="form-input" rows="2" placeholder="Qisqacha tavsif..."></textarea></div>
-            <div class="form-group"><label>Tur</label>
-              <select id="upType" class="form-input">
-                <option value="video">🎬 Video</option>
-                <option value="audio">🎵 Audio</option>
-                <option value="image">🖼 Rasm</option>
-                <option value="book">📚 Kitob/PDF</option>
-              </select></div>
-            <div class="form-group"><label>Kategoriya</label>
-              <select id="upCategory" class="form-input"></select></div>
-            <div class="form-group"><label>Janr</label>
-              <input type="text" id="upGenre" class="form-input" placeholder="Drama, Komediya..."></div>
-            <div class="form-group"><label>Yil</label>
-              <input type="number" id="upYear" class="form-input" min="1900" max="2030" value="2024"></div>
-            <div class="form-group"><label>Reyting (0–5)</label>
-              <input type="number" id="upRating" class="form-input" min="0" max="5" step="0.5" value="0"></div>
-            <div class="form-group"><label>Fayl rejimi</label>
-              <select id="upMode" class="form-input">
-                <option value="copy">📋 Nusxa olish</option>
-                <option value="link">🔗 Havola</option>
-              </select></div>
-          </div>
-          <button class="btn btn-primary btn-lg" id="uploadBtn" onclick="doUpload()">⬆ Yuklash</button>
-          <div id="uploadProgress" class="upload-progress-bar" style="display:none">
-            <div class="progress-fill" id="uploadFill"></div>
-          </div>
-          <div id="uploadStatus" class="upload-status"></div>
-        </div>
-      </div>
+<!-- ── PLAYLISTS ── -->
+<section class="page" id="page-playlists">
+  <div class="page-header">
+    <h1>🎵 Pleylistlar</h1>
+    <button class="btn btn-primary" onclick="showCreatePlaylist()">+ Yangi</button>
+  </div>
+  <div id="playlistsGrid" class="playlists-grid"></div>
+  <div id="playlistDetail" style="display:none"></div>
+</section>
 
-      <!-- URL tab -->
-      <div id="urlUploadTab" class="upload-container" style="display:none">
-        <div class="card">
-          <h3 style="margin-bottom:16px">🌐 Saytdan yuklash (URL)</h3>
-          <div class="form-grid">
-            <div class="form-group full"><label>Fayl URL *</label>
-              <input type="url" id="urlInput" class="form-input" placeholder="https://example.com/video.mp4"></div>
-            <div class="form-group full"><label>Sarlavha</label>
-              <input type="text" id="urlTitle" class="form-input" placeholder="Avtomatik aniqlanadi"></div>
-            <div class="form-group"><label>Tur</label>
-              <select id="urlType" class="form-input">
-                <option value="video">🎬 Video</option>
-                <option value="audio">🎵 Audio</option>
-                <option value="image">🖼 Rasm</option>
-                <option value="book">📚 Kitob/PDF</option>
-              </select></div>
-            <div class="form-group"><label>Kategoriya</label>
-              <select id="urlCategory" class="form-input"></select></div>
-            <div class="form-group"><label>Janr</label>
-              <input type="text" id="urlGenre" class="form-input"></div>
-            <div class="form-group"><label>Yil</label>
-              <input type="number" id="urlYear" class="form-input" min="1900" max="2030" value="2024"></div>
-            <div class="form-group"><label>Reyting (0–5)</label>
-              <input type="number" id="urlRating" class="form-input" min="0" max="5" step="0.5" value="0"></div>
-            <div class="form-group full"><label>Tavsif</label>
-              <textarea id="urlDesc" class="form-input" rows="2"></textarea></div>
-            <div class="form-group full"><label>URL rejimi</label>
-              <select id="urlMode" class="form-input">
-                <option value="stream">🔗 Stream (yuklamasdan ko'rish)</option>
-                <option value="download">⬇ Serverga yuklash</option>
-              </select></div>
-          </div>
-          <button class="btn btn-primary btn-lg" id="urlDownloadBtn" onclick="doUrlDownload()">➕ Qo'shish</button>
-          <div id="urlStatus" class="upload-status" style="margin-top:12px"></div>
-        </div>
-      </div>
+<!-- ── COLLECTIONS ── -->
+<section class="page" id="page-collections">
+  <div class="page-header">
+    <h1>📂 Smart To'plamlar</h1>
+    <button class="btn btn-primary" onclick="showCreateCollection()">+ Yangi to'plam</button>
+  </div>
+  <p class="hint-text" style="margin-bottom:16px">Filtr asosida avtomatik to'planadigan medialar</p>
+  <div id="collectionsGrid" class="playlists-grid"></div>
+  <div id="collectionDetail" style="display:none"></div>
+</section>
 
+<!-- ── TAGS ── -->
+<section class="page" id="page-tags">
+  <div class="page-header"><h1>🏷 Teglar</h1></div>
+  <div class="card" style="margin-bottom:16px;max-width:500px">
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div class="form-group" style="flex:1"><label>Teg nomi</label>
+        <input type="text" id="newTagName" class="form-input" placeholder="Teg nomi"
+               onkeydown="if(event.key==='Enter')addTag()"></div>
+      <div class="form-group"><label>Rang</label>
+        <input type="color" id="newTagColor" value="#58a6ff" style="height:36px;width:60px;border:1px solid var(--border);border-radius:var(--radius);padding:2px;background:var(--bg-secondary);cursor:pointer"></div>
+      <button class="btn btn-primary" onclick="addTag()">+ Qo'shish</button>
+    </div>
+  </div>
+  <div id="tagsGrid" class="tags-grid"></div>
+  <div id="tagMediaSection" style="display:none">
+    <div class="page-header" style="margin-top:20px">
+      <h3 id="tagMediaTitle"></h3>
+      <button class="btn btn-sm" onclick="$('tagMediaSection').style.display='none'">✕</button>
+    </div>
+    <div id="tagMediaGrid" class="media-grid"></div>
+  </div>
+</section>
 
-      <!-- Bulk Import tab -->
-      <div id="bulkUploadTab" class="upload-container" style="display:none">
-        <div class="card">
-          <h3 style="margin-bottom:8px">📦 Papkadan ommaviy import</h3>
-          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">
-            Belgilangan papkadagi barcha media fayllarni bir martada bazaga qo'shish
-          </p>
-          <div class="form-grid">
-            <div class="form-group full">
-              <label>Papka yo'li *</label>
-              <input type="text" id="bulkImportPath" class="form-input" placeholder="/home/user/Videos yoki C:\Users\Videos">
-            </div>
-            <div class="form-group">
-              <label>Kategoriya</label>
-              <select id="bulkImportCat" class="form-input"></select>
-            </div>
-            <div class="form-group" style="justify-content:flex-end;padding-top:20px">
-              <label class="filter-checkbox">
-                <input type="checkbox" id="bulkImportRecursive"> 📂 Ichki papkalarni ham skanerlash
-              </label>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-lg" id="bulkImportBtn" onclick="doBulkImport()" style="margin-top:12px">
-            📂 Import qilish
-          </button>
-          <div id="bulkImportStatus" class="upload-status" style="margin-top:12px"></div>
-          <div class="upload-note" style="margin-top:16px">
-            <p>💡 Bu funksiya fayllarni <strong>havolalar</strong> sifatida qo'shadi (ko'chirish amalga oshirilmaydi).
-            Faqat bazaga yo'l saqlanadi. Mavjud fayllar o'tkazib yuboriladi.</p>
-          </div>
-        </div>
-      </div>
+<!-- ── HISTORY ── -->
+<section class="page" id="page-history">
+  <div class="page-header">
+    <h1>🕐 Ko'rish Tarixi</h1>
+    <button class="btn btn-sm btn-danger" onclick="clearHistory()">🗑 Tozala</button>
+  </div>
+  <div id="historyTable"></div>
+</section>
 
-      <!-- Watch Folder tab -->
-      <div id="watchFolderUploadTab" class="upload-container" style="display:none">
-        <div class="card" style="margin-bottom:16px">
-          <h3 style="margin-bottom:8px">👁 Papka qo'shish</h3>
-          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">
-            Belgilangan papkaga yangi fayl tushsa, "Skan" tugmasi orqali avtomatik bazaga qo'shiladi
-          </p>
-          <div style="display:flex;gap:10px;align-items:flex-end">
-            <div class="form-group" style="flex:1">
-              <label>Papka yo'li</label>
-              <input type="text" id="watchFolderPath" class="form-input" placeholder="/home/user/Videos">
-            </div>
-            <button class="btn btn-primary" onclick="addWatchFolder()">+ Qo'shish</button>
-            <button class="btn btn-sm" onclick="scanAllFolders()" title="Barcha aktiv papkalarni skanerlash">🔍 Hammasini skanla</button>
-          </div>
-        </div>
-        <div id="watchFolderList"></div>
-      </div>
-    </section>
+<!-- ── STATS ── -->
+<section class="page" id="page-stats">
+  <div class="page-header">
+    <h1>📊 Statistika</h1>
+    <div style="display:flex;gap:8px">
+      <select id="statsPeriodSel" class="filter-select" onchange="loadStatsPage()">
+        <option value="daily">📅 Kunlik (30 kun)</option>
+        <option value="weekly">📆 Haftalik</option>
+      </select>
+      <button class="btn btn-sm" onclick="loadStatsPage()">🔄</button>
+    </div>
+  </div>
+  <div class="stats-summary-row">
+    <div class="stat-card"><div class="stat-val" id="totalWatchTime" style="color:var(--accent-success)">—</div>
+      <div class="stat-label">⏱ Jami ko'rish vaqti</div></div>
+  </div>
+  <div class="card" style="margin-top:16px;padding:20px">
+    <h3 style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">📈 Ko'rish grafigi</h3>
+    <div id="statsChartWrap"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+  <div id="watchTimePerMedia" style="margin-top:16px"></div>
+</section>
 
-    <!-- PLAYLISTS PAGE -->
-    <section class="page" id="page-playlists">
-      <div class="page-header">
-        <h1>🎵 Pleylistlar</h1>
-        <button class="btn btn-primary" onclick="showCreatePlaylist()">+ Yangi pleylist</button>
-      </div>
-      <div id="playlistsGrid" class="playlists-grid"></div>
-      <div id="playlistDetail" class="playlist-detail" style="display:none"></div>
-    </section>
+<!-- ── TOP ── -->
+<section class="page" id="page-top">
+  <div class="page-header">
+    <h1>🏆 Top Media</h1>
+    <div style="display:flex;gap:8px">
+      <select id="topSortSel" class="filter-select" onchange="loadTopPage()">
+        <option value="views">👁 Ko'rishlar</option>
+        <option value="rating">⭐ Reyting</option>
+      </select>
+      <button class="btn btn-sm" onclick="loadTopPage()">🔄</button>
+    </div>
+  </div>
+  <div id="topMediaList"></div>
+</section>
 
-    <!-- HISTORY PAGE -->
-    <section class="page" id="page-history">
-      <div class="page-header">
-        <h1>🕐 Ko'rish Tarixi</h1>
-        <button class="btn btn-danger" onclick="clearHistory()">🗑 Tozalash</button>
-      </div>
-      <div id="historyTable" class="history-table-wrap"></div>
-    </section>
+<!-- ── TRASH ── -->
+<section class="page" id="page-trash">
+  <div class="page-header">
+    <h1>🗑 Savat (Recycle Bin)</h1>
+    <button class="btn btn-sm btn-danger" onclick="emptyTrash()">🗑 Hammasini o'chir</button>
+  </div>
+  <p class="hint-text" style="margin-bottom:14px">O'chirilgan medialar shu yerda saqlanadi. Tiklash yoki butunlay o'chirish mumkin.</p>
+  <div id="trashList"></div>
+</section>
 
-    <!-- STATS PAGE -->
-    <section class="page" id="page-stats">
-      <div class="page-header">
-        <h1>📊 Ko'rish Statistikasi</h1>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select id="statsPeriodSel" class="filter-select" onchange="loadStatsPage()">
-            <option value="daily">📅 Kunlik (30 kun)</option>
-            <option value="weekly">📆 Haftalik</option>
-          </select>
-          <button class="btn btn-sm" onclick="loadStatsPage()">🔄</button>
-        </div>
-      </div>
-      <div class="stats-summary-row">
-        <div class="stat-card">
-          <div class="stat-val" style="color:var(--accent-success)" id="totalWatchTime">—</div>
-          <div class="stat-label">⏱ Jami ko'rish vaqti</div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:16px;padding:20px">
-        <h3 style="margin-bottom:16px;color:var(--text-secondary);font-size:14px">📈 Ko'rish grafigi</h3>
-        <div id="statsChartWrap">
-          <div class="loading"><div class="spinner"></div> Yuklanmoqda...</div>
-        </div>
-      </div>
-      <div id="watchTimePerMedia" style="margin-top:16px"></div>
-    </section>
+<!-- ── ACTIVITY LOG ── -->
+<section class="page" id="page-activity">
+  <div class="page-header">
+    <h1>📋 Faoliyat Jurnali</h1>
+    <button class="btn btn-sm btn-danger" onclick="clearActivity()">🗑 Tozala</button>
+  </div>
+  <div id="activityList"></div>
+</section>
 
-    <!-- TOP MEDIA PAGE -->
-    <section class="page" id="page-top">
-      <div class="page-header">
-        <h1>🏆 Top Media Reytingi</h1>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select id="topSortSel" class="filter-select" onchange="loadTopPage()">
-            <option value="views">👁 Ko'rishlar bo'yicha</option>
-            <option value="rating">⭐ Reyting bo'yicha</option>
-          </select>
-          <button class="btn btn-sm" onclick="loadTopPage()">🔄</button>
-        </div>
-      </div>
-      <div id="topMediaList"></div>
-    </section>
+<!-- ── STORAGE ── -->
+<section class="page" id="page-storage">
+  <div class="page-header"><h1>💾 Saqlash Tahlili</h1></div>
+  <div id="storageWrap"></div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="margin-bottom:12px">🔄 Takroriy Fayllar</h3>
+    <button class="btn btn-primary" onclick="findDuplicates()" id="findDupBtn">🔍 Topish</button>
+    <div id="duplicatesList" style="margin-top:12px"></div>
+  </div>
+</section>
 
-    <!-- ADMIN PAGE -->
-    <section class="page" id="page-admin">
-      <div class="page-header"><h1>⚙ Admin Panel</h1></div>
-      <div class="admin-tabs">
-        <button class="tab-btn active" onclick="showAdminTab('media')">📋 Media</button>
-        <button class="tab-btn" onclick="showAdminTab('categories')">🏷 Kategoriyalar</button>
-        <button class="tab-btn" onclick="showAdminTab('settings')">⚙ Sozlamalar</button>
-        <button class="tab-btn" onclick="showAdminTab('backup')">💾 Backup</button>
-      </div>
-      <div id="adminContent" class="admin-content"></div>
-    </section>
+<!-- ── ADMIN ── -->
+<section class="page" id="page-admin">
+  <div class="page-header"><h1>⚙ Admin Panel</h1></div>
+  <div class="admin-tabs">
+    <button class="tab-btn active" onclick="showAdminTab('media')">📋 Media</button>
+    <button class="tab-btn" onclick="showAdminTab('categories')">🏷 Kategoriyalar</button>
+    <button class="tab-btn" onclick="showAdminTab('settings')">⚙ Sozlamalar</button>
+    <button class="tab-btn" onclick="showAdminTab('backup')">💾 Backup</button>
+  </div>
+  <div id="adminContent" class="admin-content"></div>
+</section>
 
-  </main>
-</div>
+</main><!-- /main-content -->
+</div><!-- /app -->
 
 
-<!-- ═══ VIDEO PLAYER MODAL ════════════════════════════════ -->
+<!-- ═══════════ PLAYER MODAL ════════════════ -->
 <div id="playerModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closePlayer()"></div>
   <div class="modal-content player-modal">
     <button class="modal-close" onclick="closePlayer()">✕</button>
     <div class="player-title" id="playerTitle"></div>
-    <!-- Playlist nav -->
-    <div id="playerPlaylistNav" class="player-playlist-nav" style="display:none">
-      <button id="plPrevBtn" class="ctrl-btn" onclick="playlistPrev()">⏮ Oldingi</button>
-      <span style="font-size:12px;color:var(--text-secondary)">Pleylist</span>
-      <button id="plNextBtn" class="ctrl-btn" onclick="playlistNext()">Keyingi ⏭</button>
+    <div id="playerPlaylistNav" class="player-pl-nav" style="display:none">
+      <button id="plPrevBtn" class="ctrl-btn" onclick="playlistPrev()">⏮</button>
+      <span id="plNavLabel" style="font-size:12px;color:var(--text-secondary)">Pleylist</span>
+      <button id="plNextBtn" class="ctrl-btn" onclick="playlistNext()">⏭</button>
     </div>
     <div class="player-wrap">
-      <video id="videoEl" class="video-player" preload="metadata" crossorigin="anonymous">
-        Brauzer video formatini qo'llab-quvvatlamaydi.
-      </video>
+      <video id="videoEl" class="video-player" preload="metadata" crossorigin="anonymous"></video>
       <audio id="audioEl" class="audio-player" preload="metadata" style="display:none"></audio>
-      <div class="player-overlay" id="playerOverlay" onclick="togglePlay()">
+      <track id="subTrack" kind="subtitles" src="" default style="display:none">
+      <div class="player-overlay" onclick="togglePlay()">
         <div class="play-icon" id="overlayIcon" style="display:none">▶</div>
       </div>
     </div>
     <div class="player-status" id="playerStatus">⏳ Yuklanmoqda...</div>
-    <!-- Seek bar -->
     <div class="player-controls">
       <div class="seek-wrap">
         <span id="timeCur" class="time-label">0:00</span>
-        <input type="range" id="seekBar" class="seek-bar" min="0" max="1000" value="0"
-               oninput="onSeekMove(this.value)" onchange="onSeekRelease(this.value)">
+        <div class="seek-container">
+          <input type="range" id="seekBar" class="seek-bar" min="0" max="1000" value="0"
+                 oninput="onSeekMove(this.value)" onchange="onSeekRelease(this.value)">
+          <div id="bookmarkMarkers" class="bookmark-markers"></div>
+        </div>
         <span id="timeDur" class="time-label">0:00</span>
       </div>
-      <!-- Main controls -->
       <div class="ctrl-row">
         <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">▶</button>
-        <button class="ctrl-btn" onclick="seekRelative(-10)">⏪ 10s</button>
-        <button class="ctrl-btn" onclick="seekRelative(10)">10s ⏩</button>
+        <button class="ctrl-btn" onclick="seekRelative(-10)">⏪10s</button>
+        <button class="ctrl-btn" onclick="seekRelative(10)">10s⏩</button>
         <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
-        <input type="range" id="volBar" class="vol-bar" min="0" max="100" value="80" oninput="setVolume(this.value)">
+        <input type="range" id="volBar" class="vol-bar" min="0" max="100" value="80"
+               oninput="setVolume(this.value)">
         <span id="volLabel" class="vol-label">80%</span>
         <select id="speedSel" class="speed-sel" onchange="setSpeed(this.value)">
-          <option value="0.25">0.25x</option>
-          <option value="0.5">0.5x</option>
-          <option value="0.75">0.75x</option>
-          <option value="1" selected>1.0x</option>
-          <option value="1.25">1.25x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2.0x</option>
-          <option value="3">3.0x</option>
+          <option value="0.25">0.25x</option><option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option><option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option><option value="1.5">1.5x</option>
+          <option value="2">2x</option><option value="3">3x</option>
         </select>
-        <button class="ctrl-btn" id="fullBtn" onclick="toggleFullscreen()">⛶</button>
+        <button class="ctrl-btn" onclick="toggleFullscreen()">⛶</button>
       </div>
-      <!-- Extra controls row: PiP, Screenshot, Loop -->
       <div class="ctrl-row ctrl-row-extra">
-        <button class="ctrl-btn" id="pipBtn" onclick="togglePiP()" title="Picture-in-Picture">📺 PiP</button>
-        <button class="ctrl-btn" onclick="takeScreenshot()" title="Screenshot olish (S)">📸 Screenshot</button>
-        <button class="ctrl-btn" id="loopBtn" onclick="toggleLoop()" title="Loop rejimi (L)">🔁 Loop</button>
-        <button class="ctrl-btn btn-sm" onclick="setLoopStart()" title="Loop boshini belgilash">[A</button>
-        <button class="ctrl-btn btn-sm" onclick="setLoopEnd()"   title="Loop oxirini belgilash">B]</button>
-        <button class="ctrl-btn btn-sm" onclick="resetLoop()" title="Loopni tozalash">↺</button>
+        <button class="ctrl-btn" id="pipBtn" onclick="togglePiP()">📺 PiP</button>
+        <button class="ctrl-btn" onclick="takeScreenshot()">📸</button>
+        <button class="ctrl-btn" id="loopBtn" onclick="toggleLoop()">🔁</button>
+        <button class="ctrl-btn btn-sm" onclick="setLoopStart()">[A</button>
+        <button class="ctrl-btn btn-sm" onclick="setLoopEnd()">B]</button>
+        <button class="ctrl-btn btn-sm" onclick="resetLoop()">↺</button>
         <span id="loopInfo" class="loop-info" style="display:none"></span>
-        <div style="margin-left:auto">
-          <button class="ctrl-btn btn-sm" onclick="openCommentsModal(State.player.mediaId)" title="Izohlar">💬 Izoh</button>
+        <button class="ctrl-btn btn-sm" onclick="addBookmarkAtCurrent()">🔖</button>
+        <button class="ctrl-btn btn-sm" onclick="toggleEqualizer()">🎚 EQ</button>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="ctrl-btn btn-sm" onclick="openCommentsModal(State.player.mediaId)">💬</button>
+          <button class="ctrl-btn btn-sm" onclick="openNoteModal(State.player.mediaId)">📝</button>
+          <button class="ctrl-btn btn-sm" onclick="shareMedia(State.player.mediaId)">🔗</button>
         </div>
       </div>
+      <!-- Equalizer -->
+      <div id="equalizerPanel" class="equalizer-panel" style="display:none">
+        <div class="eq-title">🎚 Equalizer</div>
+        <div class="eq-bands">
+          <div class="eq-band"><label>Bass</label>
+            <input type="range" id="eqBass" class="eq-slider" min="-12" max="12" value="0"
+                   oninput="applyEQ()"><span id="eqBassVal">0</span></div>
+          <div class="eq-band"><label>Mid</label>
+            <input type="range" id="eqMid" class="eq-slider" min="-12" max="12" value="0"
+                   oninput="applyEQ()"><span id="eqMidVal">0</span></div>
+          <div class="eq-band"><label>Treble</label>
+            <input type="range" id="eqTreble" class="eq-slider" min="-12" max="12" value="0"
+                   oninput="applyEQ()"><span id="eqTrebleVal">0</span></div>
+        </div>
+        <div class="eq-presets">
+          <button class="btn btn-sm" onclick="eqPreset(0,0,0)">Flat</button>
+          <button class="btn btn-sm" onclick="eqPreset(6,2,-2)">Bass Boost</button>
+          <button class="btn btn-sm" onclick="eqPreset(-2,0,6)">Treble Boost</button>
+          <button class="btn btn-sm" onclick="eqPreset(4,0,4)">V-shape</button>
+          <button class="btn btn-sm" onclick="eqPreset(0,4,0)">Vocal</button>
+        </div>
+      </div>
+      <!-- Bookmarks bar -->
+      <div id="bookmarksList" class="player-bookmarks" style="display:none"></div>
     </div>
     <div class="player-info" id="playerInfo"></div>
+    <!-- Subtitle track selector -->
+    <div id="subSelector" class="sub-selector" style="display:none">
+      <span style="font-size:12px;color:var(--text-secondary)">Subtitr:</span>
+      <button class="btn btn-sm" onclick="loadSubtitle(State.player.mediaId)">📋 Yuklash</button>
+      <span id="subStatus" style="font-size:11px;color:var(--text-muted)"></span>
+    </div>
   </div>
 </div>
 
-<!-- ═══ IMAGE VIEWER MODAL ═════════════════════════════════ -->
+<!-- ═══════════ IMAGE VIEWER ════════════════ -->
 <div id="imageViewerModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeImageViewer()"></div>
   <div class="modal-content image-viewer-modal">
     <button class="modal-close" onclick="closeImageViewer()">✕</button>
     <div class="player-title" id="imageViewerTitle"></div>
     <div class="image-viewer-wrap">
-      <img id="imageViewerImg" class="viewer-image" src="" alt="">
+      <img id="imageViewerImg" src="" alt="" class="viewer-image">
     </div>
     <div class="player-info" id="imageViewerInfo"></div>
   </div>
 </div>
 
-<!-- ═══ BOOK VIEWER MODAL ══════════════════════════════════ -->
+<!-- ═══════════ BOOK VIEWER ═════════════════ -->
 <div id="bookViewerModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeBookViewer()"></div>
   <div class="modal-content book-viewer-modal">
@@ -408,7 +544,8 @@
   </div>
 </div>
 
-<!-- ═══ EDIT MEDIA MODAL ═══════════════════════════════════ -->
+
+<!-- ═══════════ EDIT MODAL ════════════════ -->
 <div id="editModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeEdit()"></div>
   <div class="modal-content edit-modal">
@@ -426,14 +563,22 @@
         <input type="text" id="editGenre" class="form-input"></div>
       <div class="form-group"><label>Yil</label>
         <input type="number" id="editYear" class="form-input" min="1900" max="2030"></div>
-      <div class="form-group"><label>Reyting (0–5)</label>
+      <div class="form-group"><label>Reyting (0-5)</label>
         <input type="number" id="editRating" class="form-input" min="0" max="5" step="0.5"></div>
+      <div class="form-group full"><label>Teglar</label>
+        <div id="editTagsWrap" class="tags-picker"></div></div>
     </div>
-    <button class="btn btn-primary" onclick="saveEdit()">💾 Saqlash</button>
+    <div class="edit-modal-actions">
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Saqlash</button>
+      <button class="btn btn-sm" onclick="openRenameModal(parseInt($('editId').value))">🏷 Rename</button>
+      <button class="btn btn-sm" onclick="openThumbUpload(parseInt($('editId').value))">🖼 Thumbnail</button>
+      <button class="btn btn-sm" onclick="openSubUpload(parseInt($('editId').value))">📋 Subtitr</button>
+      <button class="btn btn-sm" onclick="showMediaInfo(parseInt($('editId').value))">ℹ Info</button>
+    </div>
   </div>
 </div>
 
-<!-- ═══ RENAME MODAL ════════════════════════════════════════ -->
+<!-- ═══════════ RENAME MODAL ════════════════ -->
 <div id="renameModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeRenameModal()"></div>
   <div class="modal-content edit-modal">
@@ -441,45 +586,195 @@
     <h2>🏷 Nomini o'zgartirish</h2>
     <input type="hidden" id="renameId">
     <div class="form-grid">
-      <div class="form-group full">
-        <label>Yangi sarlavha *</label>
-        <input type="text" id="renameTitle" class="form-input" placeholder="Media sarlavhasi"
-               onkeydown="if(event.key==='Enter') doRename()">
-      </div>
+      <div class="form-group full"><label>Yangi sarlavha *</label>
+        <input type="text" id="renameTitle" class="form-input"
+               onkeydown="if(event.key==='Enter')doRename()"></div>
       <div class="form-group full" id="renameFilenameRow">
         <label>Fayl nomi (ixtiyoriy)</label>
         <input type="text" id="renameFilename" class="form-input" placeholder="video.mp4">
-        <small style="color:var(--text-muted);font-size:11px;margin-top:4px">
-          ⚠ Fayl nomini o'zgartirish diskdagi faylni ham o'zgartiradi
-        </small>
+        <small style="color:var(--text-muted);font-size:11px;margin-top:4px">⚠ Diskdagi fayl ham o'zgaradi</small>
       </div>
     </div>
     <button class="btn btn-primary" onclick="doRename()">✓ Saqlash</button>
   </div>
 </div>
 
+<!-- ═══════════ BATCH EDIT MODAL ════════════ -->
+<div id="batchEditModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="closeBatchEdit()"></div>
+  <div class="modal-content edit-modal">
+    <button class="modal-close" onclick="closeBatchEdit()">✕</button>
+    <h2>✏ Batch Edit (<span id="batchEditCount">0</span> ta media)</h2>
+    <p class="hint-text">Faqat to'ldirilgan maydonlar o'zgartiriladi</p>
+    <div class="form-grid" style="margin-top:14px">
+      <div class="form-group"><label>Kategoriya</label>
+        <select id="batchCategory" class="form-input"><option value="">— O'zgartirmaslik —</option></select></div>
+      <div class="form-group"><label>Janr</label>
+        <input type="text" id="batchGenre" class="form-input" placeholder="O'zgartirmaslik"></div>
+      <div class="form-group"><label>Yil</label>
+        <input type="number" id="batchYear" class="form-input" placeholder="O'zgartirmaslik" min="1900" max="2030"></div>
+      <div class="form-group"><label>Reyting</label>
+        <input type="number" id="batchRating" class="form-input" min="0" max="5" step="0.5" placeholder="O'zgartirmaslik"></div>
+    </div>
+    <button class="btn btn-primary" onclick="doBatchEdit()">💾 Hammaga qo'llash</button>
+  </div>
+</div>
 
-<!-- ═══ COMMENTS MODAL ══════════════════════════════════════ -->
+<!-- ═══════════ COMMENTS MODAL ══════════════ -->
 <div id="commentsModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeCommentsModal()"></div>
-  <div class="modal-content comments-modal">
+  <div class="modal-content edit-modal">
     <button class="modal-close" onclick="closeCommentsModal()">✕</button>
     <h2>💬 Izohlar</h2>
     <input type="hidden" id="commentsMediaId">
     <div id="commentsList" class="comments-list"></div>
     <div class="comment-input-wrap">
       <textarea id="newCommentText" class="form-input" rows="3"
-        placeholder="Izoh yozing... (shaxsiy eslatmalar, taassurotlar)"
-        onkeydown="if(event.ctrlKey && event.key==='Enter') addComment()"></textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px">
-        <small style="color:var(--text-muted);font-size:11px;align-self:center">Ctrl+Enter — yuborish</small>
+        placeholder="Izoh yozing... (Ctrl+Enter = yuborish)"
+        onkeydown="if(event.ctrlKey&&event.key==='Enter')addComment()"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
         <button class="btn btn-primary" onclick="addComment()">💬 Qo'shish</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ CREATE PLAYLIST MODAL ══════════════════════════════ -->
+<!-- ═══════════ NOTE MODAL ═══════════════════ -->
+<div id="noteModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="closeNoteModal()"></div>
+  <div class="modal-content edit-modal">
+    <button class="modal-close" onclick="closeNoteModal()">✕</button>
+    <h2>📝 Shaxsiy Eslatma</h2>
+    <input type="hidden" id="noteMediaId">
+    <textarea id="noteContent" class="form-input" rows="8"
+      placeholder="Bu yerga shaxsiy eslatma yozing..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-primary" onclick="saveNote()">💾 Saqlash</button>
+      <small style="color:var(--text-muted);align-self:center">Faqat siz ko'rasiz</small>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ BOOKMARK MODAL ═══════════════ -->
+<div id="bookmarkModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="closeBookmarkModal()"></div>
+  <div class="modal-content edit-modal" style="width:380px">
+    <button class="modal-close" onclick="closeBookmarkModal()">✕</button>
+    <h2>🔖 Bookmark qo'shish</h2>
+    <input type="hidden" id="bmPosition">
+    <input type="hidden" id="bmMediaId">
+    <div class="form-group full" style="margin-top:12px">
+      <label>Belgi nomi (ixtiyoriy)</label>
+      <input type="text" id="bmLabel" class="form-input" placeholder="Muhim sahna..."
+             onkeydown="if(event.key==='Enter')saveBookmark()">
+    </div>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="saveBookmark()">🔖 Saqlash</button>
+  </div>
+</div>
+
+<!-- ═══════════ MEDIA INFO MODAL ════════════ -->
+<div id="mediaInfoModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="$('mediaInfoModal').style.display='none'"></div>
+  <div class="modal-content edit-modal" style="width:600px;max-height:80vh">
+    <button class="modal-close" onclick="$('mediaInfoModal').style.display='none'">✕</button>
+    <h2>ℹ Media Ma'lumoti</h2>
+    <div id="mediaInfoContent" style="overflow-y:auto;max-height:60vh;font-size:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════════ THUMBNAIL UPLOAD MODAL ══════ -->
+<div id="thumbModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="$('thumbModal').style.display='none'"></div>
+  <div class="modal-content edit-modal" style="width:400px">
+    <button class="modal-close" onclick="$('thumbModal').style.display='none'">✕</button>
+    <h2>🖼 Thumbnail yuklash</h2>
+    <input type="hidden" id="thumbMediaId">
+    <div class="drop-zone" style="height:120px;margin:14px 0"
+         onclick="$('thumbFileInput').click()">
+      <div class="drop-icon" style="font-size:28px">🖼</div>
+      <div class="drop-sub">JPG / PNG / WEBP</div>
+    </div>
+    <input type="file" id="thumbFileInput" accept=".jpg,.jpeg,.png,.webp"
+           style="display:none" onchange="doThumbUpload(this)">
+  </div>
+</div>
+
+<!-- ═══════════ SUBTITLE UPLOAD MODAL ═══════ -->
+<div id="subModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="$('subModal').style.display='none'"></div>
+  <div class="modal-content edit-modal" style="width:400px">
+    <button class="modal-close" onclick="$('subModal').style.display='none'">✕</button>
+    <h2>📋 Subtitr biriktirish</h2>
+    <input type="hidden" id="subMediaId">
+    <div class="drop-zone" style="height:120px;margin:14px 0"
+         onclick="$('subFileInput').click()">
+      <div class="drop-icon" style="font-size:28px">📋</div>
+      <div class="drop-sub">.srt · .vtt · .ass</div>
+    </div>
+    <input type="file" id="subFileInput" accept=".srt,.vtt,.ass,.ssa"
+           style="display:none" onchange="doSubUpload(this)">
+  </div>
+</div>
+
+<!-- ═══════════ SHARE MODAL ══════════════════ -->
+<div id="shareModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="$('shareModal').style.display='none'"></div>
+  <div class="modal-content edit-modal" style="width:420px">
+    <button class="modal-close" onclick="$('shareModal').style.display='none'">✕</button>
+    <h2>🔗 Ulashish</h2>
+    <div class="form-group full" style="margin-top:14px">
+      <label>Bevosita havola</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="shareLink" class="form-input" readonly>
+        <button class="btn btn-primary" onclick="copyShareLink()">📋 Nusxa</button>
+      </div>
+    </div>
+    <div class="form-group full" style="margin-top:12px">
+      <label>Embed kodi</label>
+      <textarea id="shareEmbed" class="form-input" rows="3" readonly></textarea>
+      <button class="btn btn-sm" style="margin-top:6px" onclick="copyEmbed()">📋 Embed nusxa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ COLLECTION MODAL ════════════ -->
+<div id="createCollectionModal" class="modal" style="display:none">
+  <div class="modal-overlay" onclick="$('createCollectionModal').style.display='none'"></div>
+  <div class="modal-content edit-modal">
+    <button class="modal-close" onclick="$('createCollectionModal').style.display='none'">✕</button>
+    <h2>📂 Yangi Smart To'plam</h2>
+    <p class="hint-text">Belgilangan filtrlarga mos medialar avtomatik qo'shiladi</p>
+    <div class="form-grid" style="margin-top:14px">
+      <div class="form-group full"><label>Nomi *</label>
+        <input type="text" id="colName" class="form-input"></div>
+      <div class="form-group full"><label>Tavsif</label>
+        <textarea id="colDesc" class="form-input" rows="2"></textarea></div>
+      <div class="form-group"><label>Tur filtri</label>
+        <select id="colType" class="form-input">
+          <option value="">Barchasi</option>
+          <option value="video">🎬 Video</option>
+          <option value="audio">🎵 Audio</option>
+          <option value="image">🖼 Rasm</option>
+          <option value="book">📚 Kitob</option>
+        </select></div>
+      <div class="form-group"><label>Janr</label>
+        <input type="text" id="colGenre" class="form-input" placeholder="Horror, Pop..."></div>
+      <div class="form-group"><label>Yildan</label>
+        <input type="number" id="colYearFrom" class="form-input" placeholder="2020" min="1900" max="2030"></div>
+      <div class="form-group"><label>Qidiruv so'zi</label>
+        <input type="text" id="colSearch" class="form-input" placeholder="Marvel, BTS..."></div>
+      <div class="form-group full">
+        <label class="filter-chk"><input type="checkbox" id="colFav"> ❤ Faqat sevimlilar</label>
+      </div>
+      <div class="form-group"><label>Rang</label>
+        <input type="color" id="colColor" value="#58a6ff"
+               style="height:36px;width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:2px;background:var(--bg-secondary);cursor:pointer"></div>
+    </div>
+    <button class="btn btn-primary" onclick="doCreateCollection()">📂 Yaratish</button>
+  </div>
+</div>
+
+<!-- ═══════════ PLAYLISTS MODALS ══════════════ -->
 <div id="createPlaylistModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeCreatePlaylist()"></div>
   <div class="modal-content edit-modal">
@@ -487,19 +782,18 @@
     <h2>🎵 Yangi Pleylist</h2>
     <div class="form-grid">
       <div class="form-group full"><label>Nomi *</label>
-        <input type="text" id="newPlName" class="form-input" placeholder="Pleylist nomi"
-               onkeydown="if(event.key==='Enter') doCreatePlaylist()"></div>
+        <input type="text" id="newPlName" class="form-input"
+               onkeydown="if(event.key==='Enter')doCreatePlaylist()"></div>
       <div class="form-group full"><label>Tavsif</label>
-        <textarea id="newPlDesc" class="form-input" rows="2" placeholder="Ixtiyoriy tavsif..."></textarea></div>
+        <textarea id="newPlDesc" class="form-input" rows="2"></textarea></div>
       <div class="form-group"><label>Rang</label>
         <input type="color" id="newPlColor" value="#58a6ff"
-               style="height:38px;width:80px;padding:2px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-secondary);cursor:pointer"></div>
+               style="height:36px;width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:2px;background:var(--bg-secondary);cursor:pointer"></div>
     </div>
     <button class="btn btn-primary" onclick="doCreatePlaylist()">✓ Yaratish</button>
   </div>
 </div>
 
-<!-- ═══ EDIT PLAYLIST MODAL ════════════════════════════════ -->
 <div id="editPlaylistModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeEditPlaylist()"></div>
   <div class="modal-content edit-modal">
@@ -513,13 +807,12 @@
         <textarea id="editPlDesc" class="form-input" rows="2"></textarea></div>
       <div class="form-group"><label>Rang</label>
         <input type="color" id="editPlColor" value="#58a6ff"
-               style="height:38px;width:80px;padding:2px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-secondary);cursor:pointer"></div>
+               style="height:36px;width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:2px;background:var(--bg-secondary);cursor:pointer"></div>
     </div>
     <button class="btn btn-primary" onclick="doEditPlaylist()">💾 Saqlash</button>
   </div>
 </div>
 
-<!-- ═══ QUICK ADD TO PLAYLIST MODAL ════════════════════════ -->
 <div id="quickAddToPlaylistModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeQuickAddToPlaylist()"></div>
   <div class="modal-content edit-modal">
@@ -530,30 +823,26 @@
   </div>
 </div>
 
-<!-- ═══ ADD MEDIA TO PLAYLIST MODAL ════════════════════════ -->
 <div id="addMediaToPlaylistModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeAddMediaToPlaylist()"></div>
-  <div class="modal-content add-media-modal">
+  <div class="modal-content edit-modal" style="width:580px">
     <button class="modal-close" onclick="closeAddMediaToPlaylist()">✕</button>
-    <h2>📎 Pleylistga media qo'shish</h2>
+    <h2>📎 Media qo'shish</h2>
     <input type="hidden" id="addMtoPl_plId">
-    <div class="filter-bar" style="margin-bottom:12px">
+    <div class="filter-bar" style="margin-bottom:10px">
       <input type="text" id="addMtoPl_search" class="filter-input" placeholder="🔍 Qidirish..."
              oninput="debounceAddMediaSearch()">
       <select id="addMtoPl_type" class="filter-select"
-              onchange="loadAddMediaToPlaylistList(parseInt($('addMtoPl_plId').value), $('addMtoPl_search').value)">
+              onchange="loadAddMediaToPlaylistList(parseInt($('addMtoPl_plId').value),$('addMtoPl_search').value)">
         <option value="">Barchasi</option>
-        <option value="video">🎬 Video</option>
-        <option value="audio">🎵 Audio</option>
-        <option value="image">🖼 Rasm</option>
-        <option value="book">📚 Kitob</option>
+        <option value="video">🎬 Video</option><option value="audio">🎵 Audio</option>
       </select>
     </div>
-    <div id="addMtoPl_list" class="add-media-list"></div>
+    <div id="addMtoPl_list" class="add-media-list" style="max-height:50vh;overflow-y:auto"></div>
   </div>
 </div>
 
-<!-- ═══ KEYBOARD SHORTCUTS MODAL ═══════════════════════════ -->
+<!-- ═══════════ SHORTCUTS MODAL ══════════════ -->
 <div id="shortcutsModal" class="modal" style="display:none">
   <div class="modal-overlay" onclick="closeShortcuts()"></div>
   <div class="modal-content edit-modal">
@@ -563,16 +852,16 @@
       <thead><tr><th>Tugma</th><th>Amal</th></tr></thead>
       <tbody>
         <tr><td><kbd>Space</kbd></td><td>Ijro / To'xtatish</td></tr>
-        <tr><td><kbd>←</kbd></td><td>10 soniya orqaga</td></tr>
-        <tr><td><kbd>→</kbd></td><td>10 soniya oldinga</td></tr>
-        <tr><td><kbd>↑</kbd></td><td>Ovozni oshirish (+10%)</td></tr>
-        <tr><td><kbd>↓</kbd></td><td>Ovozni kamaytirish (-10%)</td></tr>
-        <tr><td><kbd>M</kbd></td><td>Ovozni o'chirish / yoqish</td></tr>
+        <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>10 soniya orqaga / oldinga</td></tr>
+        <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>Ovoz +10% / -10%</td></tr>
+        <tr><td><kbd>M</kbd></td><td>Ovozni o'chirish</td></tr>
         <tr><td><kbd>F</kbd></td><td>To'liq ekran</td></tr>
-        <tr><td><kbd>L</kbd></td><td>Loop rejimini yoqish / o'chirish</td></tr>
-        <tr><td><kbd>S</kbd></td><td>Screenshot olish 📸</td></tr>
+        <tr><td><kbd>L</kbd></td><td>Loop rejim</td></tr>
+        <tr><td><kbd>S</kbd></td><td>Screenshot</td></tr>
+        <tr><td><kbd>B</kbd></td><td>Bookmark qo'shish</td></tr>
         <tr><td><kbd>N</kbd></td><td>Keyingi (pleylist)</td></tr>
         <tr><td><kbd>P</kbd></td><td>Oldingi (pleylist)</td></tr>
+        <tr><td><kbd>E</kbd></td><td>Equalizer</td></tr>
         <tr><td><kbd>Esc</kbd></td><td>Yopish</td></tr>
       </tbody>
     </table>
