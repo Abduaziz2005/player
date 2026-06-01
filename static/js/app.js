@@ -54,12 +54,30 @@ function toggleTheme() { applyTheme(State.theme === "dark" ? "light" : "dark"); 
 // ── SIDEBAR ───────────────────────────────────
 function toggleSidebar() {
   State.sidebarCollapsed = !State.sidebarCollapsed;
-  const sb = $("sidebar"), mc = $("mainContent");
-  if (sb) sb.classList.toggle("collapsed", State.sidebarCollapsed);
-  if (mc) mc.classList.toggle("sidebar-collapsed", State.sidebarCollapsed);
-  const btn = $("sidebarToggleBtn");
-  if (btn) btn.textContent = State.sidebarCollapsed ? "›" : "‹";
+  _applySidebarState();
   localStorage.setItem("sidebarCollapsed", State.sidebarCollapsed ? "1" : "0");
+}
+
+function _applySidebarState() {
+  const collapsed = State.sidebarCollapsed;
+  const sb  = $("sidebar");
+  const mc  = $("mainContent");
+  const btn = $("sidebarToggleBtn");
+  const ico = $("sidebarToggleIcon");
+
+  if (sb) sb.classList.toggle("collapsed", collapsed);
+  if (mc) mc.classList.toggle("sidebar-collapsed", collapsed);
+
+  // Tugma pozitsiyasini sidebar kengligiga mos siljitish
+  if (btn) {
+    btn.style.left = collapsed
+      ? "calc(58px - 16px)"
+      : "calc(var(--sidebar-w) - 16px)";
+    btn.classList.toggle("is-collapsed", collapsed);
+  }
+
+  // Ok belgisini almashtirish
+  if (ico) ico.textContent = collapsed ? "›" : "‹";
 }
 
 // ── API ───────────────────────────────────────
@@ -2449,13 +2467,8 @@ function closeShortcuts(){ $("shortcutsModal").style.display="none"; }
 // ── INIT ──────────────────────────────────────
 (async function init() {
   applyTheme(State.theme);
-  // Sidebar holati
-  if (State.sidebarCollapsed) {
-    $("sidebar")?.classList.add("collapsed");
-    $("mainContent")?.classList.add("sidebar-collapsed");
-    const btn = $("sidebarToggleBtn");
-    if (btn) btn.textContent = "›";
-  }
+  // Sidebar holatini bir joydan boshqarish
+  _applySidebarState();
   const settings = await api("/api/settings");
   if (settings?.per_page) State.libLimit = parseInt(settings.per_page) || 24;
   // Internet & download ruxsatini yuklash

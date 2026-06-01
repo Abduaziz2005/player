@@ -11,12 +11,17 @@
 <div id="app">
 
 <!-- ══════════════ SIDEBAR ══════════════════ -->
+<!-- Sidebar toggle tugmasi — sidebar tashqarisida, har doim ko'rinadi -->
+<button class="sidebar-pin-btn" id="sidebarToggleBtn"
+        onclick="toggleSidebar()" title="Panelni yig'ish / ochish"
+        aria-label="Toggle sidebar">
+  <span id="sidebarToggleIcon">‹</span>
+</button>
+
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <span class="logo-icon">🎬</span>
     <span class="logo-text">MediaPro</span>
-    <button class="sidebar-collapse-btn" id="sidebarToggleBtn"
-            onclick="toggleSidebar()" title="Yig'ish / Ochish">‹</button>
   </div>
 
   <div class="sidebar-search">
