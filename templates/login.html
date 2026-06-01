@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🔐 Media Player Pro — Kirish</title>
+<style>
+:root {
+  --bg:     #0d1117;
+  --card:   #161b22;
+  --border: #30363d;
+  --accent: #58a6ff;
+  --danger: #f85149;
+  --text:   #e6edf3;
+  --muted:  #8b949e;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-wrap {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-logo .icon { font-size: 52px; display: block; margin-bottom: 10px; }
+.login-logo h1 { font-size: 22px; font-weight: 700; color: var(--accent); }
+.login-logo p  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+}
+.login-card h2 { font-size: 16px; margin-bottom: 20px; text-align: center; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+.form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .18s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .18s;
+  margin-top: 4px;
+}
+.btn-login:hover { opacity: .88; }
+.btn-login:disabled { opacity: .5; cursor: not-allowed; }
+.error-msg {
+  background: rgba(248,81,73,.12);
+  border: 1px solid rgba(248,81,73,.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--danger);
+  margin-top: 14px;
+  display: none;
+  text-align: center;
+}
+.version { text-align: center; font-size: 11px; color: var(--muted); margin-top: 20px; }
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-logo">
+    <span class="icon">🎬</span>
+    <h1>Media Player Pro</h1>
+    <p>v9.0 · Web Edition</p>
+  </div>
+  <div class="login-card">
+    <h2>🔐 Kirish</h2>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label>Parol</label>
+        <input type="password" id="pwdInput" placeholder="Parolni kiriting..."
+               autocomplete="current-password" autofocus>
+      </div>
+      <button type="submit" class="btn-login" id="loginBtn">🔑 Kirish</button>
+    </form>
+    <div class="error-msg" id="errMsg"></div>
+  </div>
+  <div class="version">© Media Player Pro · Barcha huquqlar himoyalangan</div>
+</div>
+<script>
+async function doLogin(e) {
+  e.preventDefault();
+  const pwd = document.getElementById('pwdInput').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errMsg');
+  if (!pwd) { showErr('Parol kiritilmagan!'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Tekshirilmoqda...';
+  err.style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      btn.innerHTML = '✅ Muvaffaqiyatli!';
+      setTimeout(() => { window.location.href = '/'; }, 400);
+    } else {
+      showErr(data.error || 'Noto\'g\'ri parol');
+      btn.disabled = false;
+      btn.innerHTML = '🔑 Kirish';
+      document.getElementById('pwdInput').select();
+    }
+  } catch {
+    showErr('Server bilan bog\'lanib bo\'lmadi');
+    btn.disabled = false;
+    btn.innerHTML = '🔑 Kirish';
+  }
+}
+function showErr(msg) {
+  const el = document.getElementById('errMsg');
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+}
+// Enter tugmasi
+document.getElementById('pwdInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin(e);
+});
+</script>
+</body>
+</html>
