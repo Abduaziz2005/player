@@ -429,6 +429,9 @@ async function saveEdit() {
 
 // ── VIDEO/AUDIO PLAYER ─────────────────────
 async function openPlayer(id, playlistId, playlistItems, plIndex) {
+  // Agar modal allaqachon ochiq va xuddi shu media bo'lsa — qayta yuklamaslik
+  if (State.player.mediaId === id && $("playerModal").style.display !== "none") return;
+
   const m = await api(`/api/media/${id}`);
   if (!m) { toast("Media topilmadi", "error"); return; }
   if (m.media_type === "image") { openImageViewer(id); return; }
@@ -463,16 +466,25 @@ async function openPlayer(id, playlistId, playlistItems, plIndex) {
     vid.style.display = "block"; aud.style.display = "none"; vid.src = streamUrl;
   }
 
-  const progress = await api(`/api/media/${id}/progress`);
-  const mediaEl  = m.media_type === "audio" ? aud : vid;
-  if (progress?.position > 1000) {
-    mediaEl.addEventListener("loadedmetadata", function onLoad() {
-      mediaEl.currentTime = progress.position / 1000;
-      mediaEl.removeEventListener("loadedmetadata", onLoad);
-    });
-  }
-
+  // setupPlayerEvents AVVAL chaqirilsin, keyin progress — shunda eventlar ishlaydi
+  const mediaEl = m.media_type === "audio" ? aud : vid;
   setupPlayerEvents(mediaEl, id);
+
+  // Keyingi eventlar uchun yangilangan elementni olish (cloneNode sabab)
+  const activeEl = getMediaEl();
+
+  // Progress resume
+  const progress = await api(`/api/media/${id}/progress`);
+  if (progress?.position > 1000) {
+    if (activeEl.readyState >= 1) {
+      activeEl.currentTime = progress.position / 1000;
+    } else {
+      activeEl.addEventListener("loadedmetadata", function onLoad() {
+        activeEl.currentTime = progress.position / 1000;
+        activeEl.removeEventListener("loadedmetadata", onLoad);
+      });
+    }
+  }
 
   $("playerInfo").innerHTML = [
     m.media_type === "video" ? "🎬 Video" : "🎵 Audio",
@@ -487,12 +499,14 @@ async function openPlayer(id, playlistId, playlistItems, plIndex) {
   const vol = parseInt(localStorage.getItem("vol") || "80");
   $("volBar").value = vol;
   $("volLabel").textContent = vol + "%";
-  mediaEl.volume = vol / 100;
+  activeEl.volume = vol / 100;
 
-  // Reset loop UI
+  // Reset loop state
+  State.player.loopStart = 0;
+  State.player.loopEnd   = 0;
   updateLoopUI();
 
-  mediaEl.play().catch(() => { $("playerStatus").textContent = "▶ Play tugmasini bosing"; });
+  activeEl.play().catch(() => { $("playerStatus").textContent = "▶ Play tugmasini bosing"; });
 }
 
 function setupPlayerEvents(el, mediaId) {
@@ -502,11 +516,13 @@ function setupPlayerEvents(el, mediaId) {
   if (mediaEl.id === "videoEl") window._videoEl = mediaEl;
   else window._audioEl = mediaEl;
 
+  // Progress throttle: faqat har 10 soniyada bir marta saqlash
+  let lastSavedSec = -1;
+
   mediaEl.onloadedmetadata = () => {
     $("playerStatus").textContent = "✅ Tayyor";
     $("timeDur").textContent = fmtTime(mediaEl.duration * 1000);
     $("seekBar").max = 1000;
-    // Set loop end default
     if (!State.player.loopEnd) State.player.loopEnd = mediaEl.duration;
   };
 
@@ -523,7 +539,10 @@ function setupPlayerEvents(el, mediaId) {
       }
     }
 
-    if (Math.round(mediaEl.currentTime) % 5 === 0 && mediaEl.duration > 0) {
+    // Progress: har 10 soniyada faqat bir marta saqlash
+    const curSec = Math.floor(mediaEl.currentTime / 10);
+    if (curSec !== lastSavedSec && mediaEl.duration > 0) {
+      lastSavedSec = curSec;
       apiPost(`/api/media/${mediaId}/progress`, {
         position: Math.floor(mediaEl.currentTime * 1000),
         duration: Math.floor(mediaEl.duration * 1000),
@@ -1080,11 +1099,13 @@ async function loadUploadCategories() {
 }
 
 function showUploadTab(tab) {
-  ["fileUploadTab","urlUploadTab","bulkImportTab","watchFolderTab"].forEach(id => {
+  // Barcha tablarni yashirish
+  ["fileUploadTab","urlUploadTab","bulkUploadTab","watchFolderTab"].forEach(id => {
     const e = $(id); if (e) e.style.display = "none";
   });
   document.querySelectorAll(".upload-tab-btn").forEach(b => b.classList.remove("active"));
-  const t = $(`${tab}UploadTab`) || $(`${tab}Tab`);
+  // Kerakli tabni ko'rsatish: "bulk" → "bulkUploadTab", "file" → "fileUploadTab", etc.
+  const t = $(`${tab}UploadTab`);
   if (t) t.style.display = "block";
   document.querySelectorAll(`.upload-tab-btn[data-tab="${tab}"]`).forEach(b => b.classList.add("active"));
   if (tab === "watchFolder") loadWatchFolders();
